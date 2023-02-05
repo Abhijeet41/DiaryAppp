@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">DiaryApp</string>
+
+    <string name="key_mongodb">mydiaryapp-lkohc</string>
+</resources>
