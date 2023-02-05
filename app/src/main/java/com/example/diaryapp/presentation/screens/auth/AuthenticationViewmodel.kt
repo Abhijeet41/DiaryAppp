@@ -34,7 +34,8 @@ class AuthenticationViewmodel @Inject constructor(
             try {
                val result = withContext(Dispatchers.IO){
                    App.create(APP_ID).login(
-                       Credentials.google(tokenId, GoogleAuthType.ID_TOKEN)
+                       //Credentials.google(tokenId, GoogleAuthType.ID_TOKEN)
+                       Credentials.jwt(tokenId)
                    ).loggedIn
                }
                 withContext(Dispatchers.Main){
