@@ -1,5 +1,10 @@
 package com.example.diaryapp.util
 
+import com.example.diaryapp.model.Diary
+import java.time.LocalDate
+
+typealias Diaries = RequestState<Map<LocalDate,List<Diary>>>
+
 object Constants {
 
     const val APP_ID = "mydiaryapp-lkohc"

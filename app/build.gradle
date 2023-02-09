@@ -119,8 +119,8 @@ dependencies {
     // One-Tap Compose
     implementation 'com.github.stevdza-san:OneTapCompose:1.0.0'
 
-    // Desugar JDK
+    // Desugar JDK (this sdk will bypass the min sdk version support etc)
     coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:1.2.0'
-
+    //annotationProcessor 'io.realm:realm-annotations-processor:4.0.0'
 
 }

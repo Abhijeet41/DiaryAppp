@@ -9,6 +9,7 @@ import io.realm.kotlin.mongodb.App
 import io.realm.kotlin.mongodb.Credentials
 import io.realm.kotlin.mongodb.GoogleAuthType
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
@@ -18,8 +19,11 @@ class AuthenticationViewmodel @Inject constructor(
 
 ) : ViewModel(){
 
+    var authenticated = mutableStateOf(false)
+        private set
     var loadingState = mutableStateOf(false)
         private set
+
 
     fun setLoading(loading: Boolean){
         loadingState.value = loading
@@ -27,7 +31,7 @@ class AuthenticationViewmodel @Inject constructor(
 
     fun signInWithMongoAtlas(
         tokenId: String,
-        onSuccess: (Boolean) -> Unit,
+        onSuccess: () -> Unit,
         onError:(Exception) -> Unit
     ){
         viewModelScope.launch {
@@ -39,7 +43,13 @@ class AuthenticationViewmodel @Inject constructor(
                    ).loggedIn
                }
                 withContext(Dispatchers.Main){
-                    onSuccess(result)
+                    if(result){
+                        onSuccess()
+                        delay(600)
+                        authenticated.value = true
+                    }else{
+                        onError(Exception("User is not logged in."))
+                    }
                 }
             }catch (e:Exception){
                 withContext(Dispatchers.Main){

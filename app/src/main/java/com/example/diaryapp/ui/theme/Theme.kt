@@ -2,6 +2,7 @@ package com.example.diaryapp.ui.theme
 
 import android.app.Activity
 import android.os.Build
+import android.view.WindowInsets.Side
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.darkColorScheme
@@ -10,10 +11,12 @@ import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.SideEffect
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
 import androidx.core.view.ViewCompat
+import androidx.core.view.WindowCompat
 
 private val LightColors = lightColorScheme(
     primary = md_theme_light_primary,
@@ -103,6 +106,24 @@ fun DiaryAppTheme(
             ViewCompat.getWindowInsetsController(view)?.isAppearanceLightStatusBars = darkTheme
         }
     }
+
+    SideEffect {
+        val window = (view.context as Activity).window
+
+        window.statusBarColor = Color.Transparent.toArgb()
+        window.navigationBarColor = Color.Transparent.toArgb()
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q){
+            //remove unnecessary black screen from from navigation bar
+            window.isNavigationBarContrastEnforced = false
+        }
+
+        //this will make sure icon on status bar and navigation bar should be visible properly
+        val windosInsetsController = WindowCompat.getInsetsController(window, view)
+        windosInsetsController.isAppearanceLightStatusBars = !darkTheme
+        windosInsetsController.isAppearanceLightNavigationBars = !darkTheme
+    }
+
 
     MaterialTheme(
         colorScheme = colorScheme,
