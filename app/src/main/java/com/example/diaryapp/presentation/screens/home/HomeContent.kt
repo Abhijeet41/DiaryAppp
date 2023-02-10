@@ -32,9 +32,11 @@ fun HomeContent(
             modifier = Modifier
                 .padding(horizontal = 24.dp)
                 .padding(top = paddingValues.calculateTopPadding())
-                .padding(bottom = paddingValues.calculateBottomPadding())
+                .navigationBarsPadding() //this is enough for padding in Landscape Mode
+                //these all are padding properties for landscape mode
+               /* .padding(bottom = paddingValues.calculateBottomPadding())
                 .padding(start = paddingValues.calculateStartPadding(LayoutDirection.Ltr))
-                .padding(end = paddingValues.calculateEndPadding(LayoutDirection.Ltr))
+                .padding(end = paddingValues.calculateEndPadding(LayoutDirection.Ltr))*/
         ) {
             diaryNotes.forEach { (localdate, diaries) ->
                 stickyHeader(key = localdate) {

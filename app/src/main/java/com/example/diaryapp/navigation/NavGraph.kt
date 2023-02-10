@@ -6,11 +6,13 @@
 package com.example.diaryapp.navigation
 
 import android.util.Log
+import android.widget.Toast
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.*
+import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavHostController
@@ -18,12 +20,14 @@ import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
+import com.example.diaryapp.model.Mood
 import com.example.diaryapp.presentation.components.DisplayAlertDialog
 import com.example.diaryapp.presentation.screens.auth.AuthenticationScreen
 import com.example.diaryapp.presentation.screens.auth.AuthenticationViewmodel
 import com.example.diaryapp.presentation.screens.home.HomeScreen
 import com.example.diaryapp.presentation.screens.home.HomeViewModel
 import com.example.diaryapp.presentation.screens.write.WriteScreen
+import com.example.diaryapp.presentation.screens.write.WriteViewModel
 import com.example.diaryapp.util.Constants.APP_ID
 import com.example.diaryapp.util.Constants.WRITE_SCREEN_ARGUMENT_KEY
 import com.example.diaryapp.util.RequestState
@@ -36,6 +40,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
+private const val TAG = "NavGraph"
 
 @Composable
 fun SetupNavGraph(
@@ -188,12 +193,53 @@ fun NavGraphBuilder.writeRoute(onBackPressed: () -> Unit) {
         })
     ) {
         val pagerState = rememberPagerState()
+        val viewModel: WriteViewModel = viewModel()
+        val uiState = viewModel.uiState
+        val pageNumber by remember {
+            derivedStateOf { pagerState.currentPage }
+        }
+        val context = LocalContext.current
+
+        LaunchedEffect(key1 = uiState) {
+            Log.d("SelectedDiary", "${uiState.selectedDiaryId}")
+        }
 
         WriteScreen(
             onBackPressed = onBackPressed,
-            selectedDiary = null,
-            onDeleteConfirmed = {},
-            pagerState = pagerState
+            moodName = {
+                Mood.values()[pageNumber].name
+            },
+            onDeleteConfirmed = {
+                viewModel.deleteDiary(onSuccess = {
+                    Toast.makeText(context, "Deleted successfully", Toast.LENGTH_SHORT).show()
+                    onBackPressed()
+                }, onError = { errorMsg ->
+                    Toast.makeText(context, errorMsg, Toast.LENGTH_SHORT).show()
+                })
+            },
+            pagerState = pagerState,
+            uiState = uiState,
+            onTitleChanged = {
+                viewModel.setTitle(title = it)
+            },
+            onDescriptionChanged = {
+                viewModel.setDescription(description = it)
+            },
+            onSavedClick = { diary ->
+                viewModel.upsertDiary(
+                    diary = diary.apply {
+                        mood = Mood.values()[pageNumber].name
+                    },
+                    onSuccess = {
+                        onBackPressed()
+                    },
+                    onError = { errorMsg ->
+                        Toast.makeText(context, errorMsg, Toast.LENGTH_SHORT).show()
+                        Log.d(TAG, "writeRoute: $errorMsg")
+                    }
+                )
+            },
+            onDateTimeUpdated = { viewModel.updateDateTime(it) }
         )
     }
 }

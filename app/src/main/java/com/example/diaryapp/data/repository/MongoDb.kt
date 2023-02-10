@@ -12,6 +12,7 @@ import io.realm.kotlin.log.LogLevel
 import io.realm.kotlin.mongodb.App
 import io.realm.kotlin.mongodb.sync.SyncConfiguration
 import io.realm.kotlin.query.Sort
+import io.realm.kotlin.types.ObjectId
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
@@ -48,7 +49,7 @@ object MongoDb : MongoRepository {
             try {
                 return realm.query<Diary>(query = "ownerId == $0", user.identity)
                     .sort(property = "date", sortOrder = Sort.DESCENDING)
-                    .asFlow().map {result->
+                    .asFlow().map { result ->
                         RequestState.Success(data = result.list.groupBy {
                             //we need to do this because we don't have local date
                             it.date.toInstant()
@@ -56,11 +57,84 @@ object MongoDb : MongoRepository {
                                 .toLocalDate()
                         })
                     }
-            }catch (e: Exception){
+            } catch (e: Exception) {
                 return flow { emit(RequestState.Error(e)) }
             }
         } else {
             return flow { emit(RequestState.Error(UserNotAuthenticatedException())) }
+        }
+    }
+
+    override fun getSelectedId(diaryId: ObjectId): Flow<RequestState<Diary>> {
+        if (user != null) {
+            try {
+                //find that single diary from list of diaries by using id
+                return realm.query<Diary>(query = "_id == $0", diaryId).asFlow().map {
+                    RequestState.Success(data = it.list.first())
+                }
+
+            } catch (e: Exception) {
+                return flow { emit(RequestState.Error(e)) }
+            }
+        } else {
+            return flow { emit(RequestState.Error(UserNotAuthenticatedException())) }
+        }
+    }
+
+    override suspend fun insertDiary(diary: Diary): RequestState<Diary> {
+        if (user != null) {
+            return realm.write {
+                try {
+                    val addedDiary = copyToRealm(diary.apply { ownerId = user.identity })
+                    RequestState.Success(data = addedDiary)
+                } catch (e: Exception) {
+                    RequestState.Error(e)
+                }
+            }
+        } else {
+            return RequestState.Error(UserNotAuthenticatedException())
+        }
+    }
+
+    override suspend fun updateDiary(diary: Diary): RequestState<Diary> {
+        if (user != null) {
+            return realm.write {
+                val queriedDiary = query<Diary>(query = "_id == $0", diary._id).first().find()
+                if (queriedDiary != null) {
+                    queriedDiary.title = diary.title
+                    queriedDiary.description = diary.description
+                    queriedDiary.mood = diary.mood
+                    queriedDiary.images = diary.images
+                    queriedDiary.date = diary.date
+                    RequestState.Success(data = queriedDiary)
+                } else {
+                    RequestState.Error(error = Exception("Queried diary does not exist."))
+                }
+            }
+        } else {
+            return RequestState.Error(UserNotAuthenticatedException())
+        }
+    }
+
+    override suspend fun deleteDiary(id: ObjectId): RequestState<Diary> {
+        if (user != null) {
+            return realm.write {
+                val diary =
+                    query<Diary>(query = "_id == $0 AND ownerId == $1", id, user.identity)
+                        .first().find()
+                if (diary != null){
+                    try {
+                        delete(diary)
+                        RequestState.Success(diary)
+                    } catch (e: Exception) {
+                        RequestState.Error(e)
+                    }
+                }else{
+                    RequestState.Error(Exception("Diary does not exist"))
+                }
+            }
+        } else {
+            return RequestState.Error(UserNotAuthenticatedException())
         }
     }
 }

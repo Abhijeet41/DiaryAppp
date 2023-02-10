@@ -2,6 +2,7 @@
 
 package com.example.diaryapp.presentation.screens.write
 
+import android.widget.Toast
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardActions
@@ -9,33 +10,50 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusDirection
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
+import com.example.diaryapp.model.Diary
 import com.example.diaryapp.model.Mood
 import com.google.accompanist.pager.ExperimentalPagerApi
 import com.google.accompanist.pager.HorizontalPager
 import com.google.accompanist.pager.PagerState
+import kotlinx.coroutines.launch
 
 @Composable
 fun WriteContent(
+    uiState: UiState,
     paddingValues: PaddingValues,
     pagerState: PagerState,
     title: String,
     onTitleChanged: (String) -> Unit,
     description: String,
-    onDescriptionChanged: (String) -> Unit
+    onDescriptionChanged: (String) -> Unit,
+    onSavedClick: (Diary) -> Unit
 ) {
     val scrollState = rememberScrollState()
+    val context = LocalContext.current
+    val focusManager = LocalFocusManager.current
+    val scope = rememberCoroutineScope()
+    LaunchedEffect(key1 = scrollState.maxValue ){
+        scrollState.scrollTo(scrollState.maxValue)
+    }
+
     Column(
         modifier = Modifier
             .fillMaxWidth()
+            .imePadding()//this helps to push save button above the keyboard
             .padding(top = paddingValues.calculateTopPadding())
-            .padding(bottom = paddingValues.calculateBottomPadding())
+            .navigationBarsPadding() //this for remove extra padding from bottom
+            //.padding(bottom = paddingValues.calculateBottomPadding())
             .padding(bottom = 24.dp)
             .padding(horizontal = 24.dp),
         verticalArrangement = Arrangement.SpaceBetween
@@ -77,7 +95,12 @@ fun WriteContent(
                         imeAction = ImeAction.Next
                     ),
                     keyboardActions = KeyboardActions(
-                        onNext = {}
+                        onNext = {
+                            scope.launch {
+                                scrollState.animateScrollTo(Int.MAX_VALUE)
+                                focusManager.moveFocus(FocusDirection.Down)
+                            }
+                        }
                     ),
                     maxLines = 1,
                     singleLine = true
@@ -98,7 +121,9 @@ fun WriteContent(
                         imeAction = ImeAction.Next
                     ),
                     keyboardActions = KeyboardActions(
-                        onNext = {}
+                        onNext = {
+                            focusManager.clearFocus()
+                        }
                     ),
                 )
 
@@ -111,7 +136,16 @@ fun WriteContent(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(54.dp),
-                onClick = { },
+                onClick = {
+                    if (uiState.title.isNotEmpty() && uiState.description.isNotEmpty()){
+                        onSavedClick(Diary().apply {
+                            this.title = uiState.title
+                            this.description = uiState.description
+                        })
+                    }else{
+                        Toast.makeText(context,"Fields cannot be empty.",Toast.LENGTH_SHORT).show()
+                    }
+                },
                 shape = Shapes().small
             ) {
                 Text(text = "Save")
