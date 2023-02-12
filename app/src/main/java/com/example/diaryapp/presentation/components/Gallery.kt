@@ -1,5 +1,6 @@
 package com.example.diaryapp.presentation.components
 
+import android.net.Uri
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CornerBasedShape
 import androidx.compose.material3.MaterialTheme
@@ -12,6 +13,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
@@ -24,7 +26,7 @@ import kotlin.math.max
 @Composable
 fun Gallery(
     modifier: Modifier = Modifier,
-    images: List<String>,
+    images: List<Uri>,
     imagesSize: Dp = 40.dp,
     spaceBetween: Dp = 10.dp,
     imageShape: CornerBasedShape = Shapes().small
@@ -61,7 +63,8 @@ fun Gallery(
                         .data(image)
                         .crossfade(true)
                         .build(),
-                    contentDescription = "Gallery Image"
+                    contentDescription = "Gallery Image",
+                    contentScale = ContentScale.Crop
                 )
                 Spacer(modifier = Modifier.width(spaceBetween))
             }

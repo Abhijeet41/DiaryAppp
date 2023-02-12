@@ -1,10 +1,10 @@
 @file:OptIn(
-    ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class,
-    ExperimentalPagerApi::class
+    ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class, ExperimentalPagerApi::class
 )
 
 package com.example.diaryapp.navigation
 
+import android.net.Uri
 import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.ExperimentalFoundationApi
@@ -13,6 +13,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.*
 import androidx.compose.ui.platform.LocalContext
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavHostController
@@ -20,7 +21,9 @@ import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
+import com.example.diaryapp.model.GalleryImage
 import com.example.diaryapp.model.Mood
+import com.example.diaryapp.model.rememberGalleryState
 import com.example.diaryapp.presentation.components.DisplayAlertDialog
 import com.example.diaryapp.presentation.screens.auth.AuthenticationScreen
 import com.example.diaryapp.presentation.screens.auth.AuthenticationViewmodel
@@ -44,46 +47,36 @@ private const val TAG = "NavGraph"
 
 @Composable
 fun SetupNavGraph(
-    startDestination: String,
-    navController: NavHostController,
-    onDataLoaded: () -> Unit
+    startDestination: String, navController: NavHostController, onDataLoaded: () -> Unit
 ) {
     NavHost(
-        startDestination = startDestination,
-        navController = navController
+        startDestination = startDestination, navController = navController
     ) {
         authenticationRoute(
             navigateToHome = {
                 navController.popBackStack()
                 navController.navigate(Screen.Home.route)
-            },
-            onDataLoaded = onDataLoaded
-        )
-        homeRoute(
-            navigateToWrite = {
-                navController.navigate(Screen.Write.route)
-            },
-            navigateToWriteWithArgs = { id ->
-                navController.navigate(Screen.Write.passDiaryId(id))
-            },
-            navigateToAuth = {
-                navController.popBackStack()
-                navController.navigate(Screen.Authentication.route)
             }, onDataLoaded = onDataLoaded
         )
-
-        writeRoute(
-            onBackPressed = {
-                navController.popBackStack()
-            }
+        homeRoute(navigateToWrite = {
+            navController.navigate(Screen.Write.route)
+        }, navigateToWriteWithArgs = { id ->
+            navController.navigate(Screen.Write.passDiaryId(id))
+        }, navigateToAuth = {
+            navController.popBackStack()
+            navController.navigate(Screen.Authentication.route)
+        }, onDataLoaded = onDataLoaded
         )
+
+        writeRoute(onBackPressed = {
+            navController.popBackStack()
+        })
     }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 fun NavGraphBuilder.authenticationRoute(
-    navigateToHome: () -> Unit,
-    onDataLoaded: () -> Unit
+    navigateToHome: () -> Unit, onDataLoaded: () -> Unit
 ) {
     composable(route = Screen.Authentication.route) {
         val viewModel: AuthenticationViewmodel = viewModel()
@@ -107,18 +100,27 @@ fun NavGraphBuilder.authenticationRoute(
             },
             onTokenIdReceived = { tokenId ->
                 Log.d("authenticationRoute", tokenId)
-                viewModel.signInWithMongoAtlas(
-                    tokenId = tokenId,
-                    onSuccess = {
-                        messageBarState.addSuccess("Successfully Authenticated!")
-                        viewModel.setLoading(false)
-                    },
-                    onError = { errorMessage ->
-                        messageBarState.addError(Exception(errorMessage))
-                        viewModel.setLoading(false)
-                        Log.d("errorMessage", errorMessage.message.toString())
-                    }
-                )
+                viewModel.signInWithMongoAtlas(tokenId = tokenId, onSuccess = {
+                    messageBarState.addSuccess("Successfully Authenticated!")
+                    viewModel.setLoading(false)
+                }, onError = { errorMessage ->
+                    messageBarState.addError(Exception(errorMessage))
+                    viewModel.setLoading(false)
+                    Log.d("errorMessage", errorMessage.message.toString())
+                })
+            },
+            onSuccessfulFirebaseSignIn = { tokenId ->
+                viewModel.signInWithMongoAtlas(tokenId = tokenId, onSuccess = {
+                    messageBarState.addSuccess("Successfully Authenticated!")
+                    viewModel.setLoading(false)
+                }, onError = { errorMessage ->
+                    messageBarState.addError(Exception(errorMessage))
+                    viewModel.setLoading(false)
+                })
+            },
+            onFailedFirebaseSignIn = { message ->
+                messageBarState.addError(Exception(message))
+                viewModel.setLoading(false)
             },
             onDialogDismissed = { message ->
                 messageBarState.addError(Exception(message))
@@ -150,8 +152,7 @@ fun NavGraphBuilder.homeRoute(
             }
         }
 
-        HomeScreen(
-            drawerState = drawerState,
+        HomeScreen(drawerState = drawerState,
             onMenuClicked = {
                 scope.launch { drawerState.open() }
             },
@@ -162,8 +163,7 @@ fun NavGraphBuilder.homeRoute(
             },
             diaries = diaries
         )
-        DisplayAlertDialog(
-            title = "SignOut",
+        DisplayAlertDialog(title = "SignOut",
             message = "Are you sure you want to sign out ?",
             dialogOpened = signOutDialogOpened,
             onCloseDialog = { signOutDialogOpened = false },
@@ -177,8 +177,7 @@ fun NavGraphBuilder.homeRoute(
                         }
                     }
                 }
-            }
-        )
+            })
     }
 }
 
@@ -193,19 +192,18 @@ fun NavGraphBuilder.writeRoute(onBackPressed: () -> Unit) {
         })
     ) {
         val pagerState = rememberPagerState()
-        val viewModel: WriteViewModel = viewModel()
+        val viewModel: WriteViewModel = hiltViewModel()
         val uiState = viewModel.uiState
         val pageNumber by remember {
             derivedStateOf { pagerState.currentPage }
         }
         val context = LocalContext.current
-
+        val galleryState = viewModel.galleryState
         LaunchedEffect(key1 = uiState) {
             Log.d("SelectedDiary", "${uiState.selectedDiaryId}")
         }
 
-        WriteScreen(
-            onBackPressed = onBackPressed,
+        WriteScreen(onBackPressed = onBackPressed,
             moodName = {
                 Mood.values()[pageNumber].name
             },
@@ -226,20 +224,27 @@ fun NavGraphBuilder.writeRoute(onBackPressed: () -> Unit) {
                 viewModel.setDescription(description = it)
             },
             onSavedClick = { diary ->
-                viewModel.upsertDiary(
-                    diary = diary.apply {
-                        mood = Mood.values()[pageNumber].name
-                    },
-                    onSuccess = {
-                        onBackPressed()
-                    },
-                    onError = { errorMsg ->
-                        Toast.makeText(context, errorMsg, Toast.LENGTH_SHORT).show()
-                        Log.d(TAG, "writeRoute: $errorMsg")
-                    }
-                )
+                viewModel.upsertDiary(diary = diary.apply {
+                    mood = Mood.values()[pageNumber].name
+                }, onSuccess = {
+                    onBackPressed()
+                }, onError = { errorMsg ->
+                    Toast.makeText(context, errorMsg, Toast.LENGTH_SHORT).show()
+                    Log.d(TAG, "writeRoute: $errorMsg")
+                })
             },
-            onDateTimeUpdated = { viewModel.updateDateTime(it) }
+            onDateTimeUpdated = { viewModel.updateDateTime(it) },
+            galleryState = galleryState,
+            onImageSelect = { uri: Uri ->
+                val type = context.contentResolver.getType(uri)?.split("/")?.last() ?: ".jpg"
+                Log.d(TAG, "uri: $uri")
+                viewModel.addImage(image = uri, imageType = type)
+            },
+            onImageDeleteClicked = {image->
+                galleryState.removeImage(galleryImage = image)
+            }
         )
     }
+
+
 }

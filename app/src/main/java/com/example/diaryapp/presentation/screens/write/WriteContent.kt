@@ -2,6 +2,7 @@
 
 package com.example.diaryapp.presentation.screens.write
 
+import android.net.Uri
 import android.widget.Toast
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -21,11 +22,12 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
-import com.example.diaryapp.model.Diary
-import com.example.diaryapp.model.Mood
+import com.example.diaryapp.model.*
+import com.example.diaryapp.presentation.components.GalleryUploader
 import com.google.accompanist.pager.ExperimentalPagerApi
 import com.google.accompanist.pager.HorizontalPager
 import com.google.accompanist.pager.PagerState
+import io.realm.kotlin.ext.toRealmList
 import kotlinx.coroutines.launch
 
 @Composable
@@ -37,12 +39,17 @@ fun WriteContent(
     onTitleChanged: (String) -> Unit,
     description: String,
     onDescriptionChanged: (String) -> Unit,
-    onSavedClick: (Diary) -> Unit
+    onSavedClick: (Diary) -> Unit,
+    galleryState: GalleryState,
+    onImageSelect: (Uri) -> Unit,
+    onImageClicked: (GalleryImage) -> Unit
 ) {
     val scrollState = rememberScrollState()
     val context = LocalContext.current
     val focusManager = LocalFocusManager.current
     val scope = rememberCoroutineScope()
+
+
     LaunchedEffect(key1 = scrollState.maxValue ){
         scrollState.scrollTo(scrollState.maxValue)
     }
@@ -132,6 +139,15 @@ fun WriteContent(
         //this is gallery and button
         Column(verticalArrangement = Arrangement.Bottom) {
             Spacer(modifier = Modifier.height(12.dp))
+            GalleryUploader(
+                galleryState = galleryState,
+                onAddClicked = { focusManager.clearFocus() },
+                onImageSelect = onImageSelect,
+                onImageClicked = {
+                    onImageClicked(it)
+                }
+            )
+            Spacer(modifier = Modifier.height(12.dp))
             Button(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -141,6 +157,7 @@ fun WriteContent(
                         onSavedClick(Diary().apply {
                             this.title = uiState.title
                             this.description = uiState.description
+                            this.images = galleryState.images.map { it.remoteImagePath }.toRealmList()
                         })
                     }else{
                         Toast.makeText(context,"Fields cannot be empty.",Toast.LENGTH_SHORT).show()
