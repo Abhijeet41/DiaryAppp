@@ -1,36 +1,29 @@
 package com.example.diaryapp
 
 import android.os.Bundle
+import android.provider.UserDictionary.Words.APP_ID
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.core.net.toUri
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.core.view.WindowCompat
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.compose.rememberNavController
-import com.example.diaryapp.data.database.ImageToDeleteDao
-import com.example.diaryapp.data.database.ImageToUploadDao
 import com.example.diaryapp.data.database.entity.ImageToUpload
-import com.example.diaryapp.data.repository.MongoDb
-import com.example.diaryapp.navigation.Screen
 import com.example.diaryapp.navigation.SetupNavGraph
-import com.example.diaryapp.ui.theme.DiaryAppTheme
-import com.example.diaryapp.util.Constants.APP_ID
-import com.example.diaryapp.util.retryToDeletingImageFromFirebase
-import com.example.diaryapp.util.retryUploadingImageToFirebase
+import com.example.mongo.database.ImageToDeleteDao
+import com.example.mongo.database.ImageToUploadDao
+import com.example.mongo.database.entity.ImageToDelete
+import com.example.ui.theme.DiaryAppTheme
+import com.example.util.Screen
 import com.google.firebase.ktx.Firebase
 import com.google.firebase.ktx.initialize
+import com.google.firebase.storage.FirebaseStorage
+import com.google.firebase.storage.ktx.storageMetadata
 import dagger.hilt.android.AndroidEntryPoint
 import io.realm.kotlin.mongodb.App
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -102,5 +95,27 @@ private fun getStartDestination(): String {
     val user = App.create(APP_ID).currentUser
     return if (user != null && user.loggedIn) Screen.Home.route
     else Screen.Authentication.route
+}
+
+fun retryUploadingImageToFirebase(
+    imageToUpload: ImageToUpload,
+    onSuccess:() -> Unit
+){
+    val storage = FirebaseStorage.getInstance().reference
+    storage.child(imageToUpload.remoteImagePath).putFile(
+        imageToUpload.imageUri.toUri(),
+        storageMetadata {  },
+        imageToUpload.sessionUri.toUri()
+    ).addOnSuccessListener { onSuccess() }
+}
+fun retryToDeletingImageFromFirebase(
+    imageToDelete: ImageToDelete,
+    onSuccess: () -> Unit
+){
+    val storage = FirebaseStorage.getInstance().reference
+    storage.child(imageToDelete.remoteImagePath).delete()
+        .addOnSuccessListener {
+            onSuccess()
+        }
 }
 
