@@ -9,12 +9,11 @@ import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.launch
 
-class NetworkConnectivityObserver(context: Context) : ConnectivityObserver {
-
+class NetworkConnectivityObserver(context: Context): ConnectivityObserver {
     private val connectivityManager =
         context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
 
-    override fun observer(): Flow<ConnectivityObserver.Status> {
+    override fun observe(): Flow<ConnectivityObserver.Status> {
         return callbackFlow {
             val callback = object : ConnectivityManager.NetworkCallback() {
                 override fun onAvailable(network: Network) {
@@ -37,14 +36,11 @@ class NetworkConnectivityObserver(context: Context) : ConnectivityObserver {
                     launch { send(ConnectivityObserver.Status.Unavailable) }
                 }
             }
-            connectivityManager.registerDefaultNetworkCallback(callback)
 
-            //when every flows get cancelled then this awaitClose gets triggered.
+            connectivityManager.registerDefaultNetworkCallback(callback)
             awaitClose {
                 connectivityManager.unregisterNetworkCallback(callback)
             }
         }.distinctUntilChanged()
     }
-
-
 }

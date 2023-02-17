@@ -2,17 +2,19 @@ plugins {
     id 'com.android.library'
     id 'org.jetbrains.kotlin.android'
     id 'io.realm.kotlin'
+    id 'kotlin-kapt'
+    id 'dagger.hilt.android.plugin'
 }
 
 android {
-    namespace 'com.example.ui'
+    namespace 'com.example.home'
     compileSdk ProjectConfig.compileSdk
 
     defaultConfig {
         minSdk ProjectConfig.minSdk
         targetSdk ProjectConfig.targetSdk
 
-        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         consumerProguardFiles "consumer-rules.pro"
     }
 
@@ -41,12 +43,21 @@ android {
 }
 
 dependencies {
-
     implementation libs.activity.compose
     implementation libs.material3.compose
-    implementation libs.compose.tooling.preview
-    implementation libs.realm.sync
+    implementation libs.navigation.compose
     implementation libs.coroutines.core
-  //implementation(project(":core:util"))
-    //core util gradle already implement ui module
+    implementation libs.realm.sync
+    implementation libs.hilt.android
+    kapt libs.hilt.compiler
+    implementation libs.hilt.navigation.compose
+    implementation libs.compose.tooling.preview
+    implementation libs.date.time.picker
+    implementation libs.date.dialog
+    implementation libs.firebase.auth
+    implementation libs.firebase.storage
+
+    implementation(project(":core:ui"))
+    implementation(project(":core:util"))
+    implementation(project(":data:mongo"))
 }

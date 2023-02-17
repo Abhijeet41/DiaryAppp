@@ -4,7 +4,6 @@ import com.example.util.model.Diary
 import com.example.util.model.RequestState
 import java.time.LocalDate
 
-typealias Diaries = RequestState<Map<LocalDate, List<Diary>>>
 
 object Constants {
 

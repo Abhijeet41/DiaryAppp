@@ -4,7 +4,6 @@ import android.os.Build
 import android.security.keystore.UserNotAuthenticatedException
 import androidx.annotation.RequiresApi
 import com.example.util.Constants
-import com.example.util.Diaries
 import com.example.util.model.Diary
 import com.example.util.model.RequestState
 import com.example.util.toInstant
