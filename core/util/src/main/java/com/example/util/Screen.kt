@@ -1,5 +1,6 @@
 package com.example.util
 
+
 import com.example.util.Constants.WRITE_SCREEN_ARGUMENT_KEY
 
 
@@ -14,5 +15,10 @@ sealed class Screen(val route: String) {
             return "write_screen?$WRITE_SCREEN_ARGUMENT_KEY=$diaryId"
         }
     }
+    object DetailImage : Screen(
+        route = "detail_image_screen"
+    )
+
+
 
 }

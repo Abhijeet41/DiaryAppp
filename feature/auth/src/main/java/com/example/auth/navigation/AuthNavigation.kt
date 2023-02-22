@@ -24,7 +24,7 @@ fun NavGraphBuilder.authenticationRoute(
         val oneTapState = rememberOneTapSignInState()
         val messageBarState = rememberMessageBarState()
 
-        LaunchedEffect(key1 = kotlin.Unit) {
+        LaunchedEffect(key1 = Unit) {
             onDataLoaded()
         }
 

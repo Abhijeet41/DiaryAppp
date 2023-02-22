@@ -17,6 +17,8 @@ import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavType
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
+import com.example.SharedViewModel
+import com.example.ui.GalleryImage
 import com.example.util.Constants
 import com.example.util.Screen
 import com.example.util.model.Mood
@@ -27,7 +29,11 @@ private const val TAG = "WriteNavigation"
 
 @RequiresApi(Build.VERSION_CODES.O)
 @OptIn(ExperimentalFoundationApi::class)
-fun NavGraphBuilder.writeRoute(onBackPressed: () -> Unit) {
+fun NavGraphBuilder.writeRoute(
+    onBackPressed: () -> Unit,
+    onNavigationDetailImages: (GalleryImage) -> Unit,
+    sharedViewmodel: SharedViewModel
+) {
 
     composable(
         route = Screen.Write.route,
@@ -88,9 +94,15 @@ fun NavGraphBuilder.writeRoute(onBackPressed: () -> Unit) {
             },
             onImageDeleteClicked = { image ->
                 galleryState.removeImage(galleryImage = image)
-            }
+            },
+            onNavigationDetailImages = { galleryImage ->
+                onNavigationDetailImages(galleryImage)
+            },
+            sharedViewmodel = sharedViewmodel
         )
     }
+
+
 
 
 }

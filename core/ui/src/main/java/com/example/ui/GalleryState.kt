@@ -1,9 +1,11 @@
 package com.example.ui
 
 import android.net.Uri
+import android.os.Parcelable
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.remember
+import kotlinx.parcelize.Parcelize
 
 @Composable
 fun rememberGalleryState(): GalleryState {
@@ -29,7 +31,9 @@ class GalleryState {
 */
 }
 
+
+@Parcelize
 data class GalleryImage(
-    val image: Uri,
+    var image: Uri,
     val remoteImagePath: String = ""
-)
+):Parcelable

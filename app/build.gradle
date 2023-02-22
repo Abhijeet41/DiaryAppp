@@ -5,6 +5,7 @@ plugins {
     id 'io.realm.kotlin'
     id 'com.google.gms.google-services'
     id 'kotlin-kapt'
+    id 'kotlin-parcelize'
 }
 
 android {
@@ -106,7 +107,6 @@ dependencies {
 
     // Pager - Accompanist
     implementation "com.google.accompanist:accompanist-pager:0.27.0"
-
     //Imp Note we used this date time library because its support material3 library
     // Date-Time Picker
     implementation 'com.maxkeppeler.sheets-compose-dialogs:core:1.0.2'

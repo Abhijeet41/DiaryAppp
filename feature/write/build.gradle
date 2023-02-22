@@ -4,6 +4,7 @@ plugins {
     id 'io.realm.kotlin'
     id 'dagger.hilt.android.plugin'
     id 'kotlin-kapt'
+    id 'kotlin-parcelize'
 }
 
 android {
@@ -62,6 +63,8 @@ dependencies {
     implementation libs.hilt.android
     implementation libs.hilt.navigation.compose
     kapt libs.hilt.compiler
+
+    implementation libs.accompanist.pager
 
     implementation(project(":core:ui"))
     implementation(project(":core:util"))

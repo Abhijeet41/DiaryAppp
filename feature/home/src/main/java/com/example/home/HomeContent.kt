@@ -57,6 +57,7 @@ internal fun HomeContent(
     }
 }
 
+@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 internal fun DateHeader(localDate: LocalDate) {
 

@@ -1,9 +1,11 @@
 package com.example.diaryapp
 
+import android.os.Build
 import android.os.Bundle
 import android.provider.UserDictionary.Words.APP_ID
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.annotation.RequiresApi
 import androidx.core.net.toUri
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.core.view.WindowCompat
@@ -15,6 +17,7 @@ import com.example.mongo.database.ImageToDeleteDao
 import com.example.mongo.database.ImageToUploadDao
 import com.example.mongo.database.entity.ImageToDelete
 import com.example.ui.theme.DiaryAppTheme
+import com.example.util.Constants
 import com.example.util.Screen
 import com.google.firebase.ktx.Firebase
 import com.google.firebase.ktx.initialize
@@ -34,6 +37,7 @@ class MainActivity : ComponentActivity() {
     lateinit var imageToUploadDao: ImageToUploadDao
     @Inject
     lateinit var imageToDeleteDao: ImageToDeleteDao
+    @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         Firebase.initialize(this)
@@ -92,7 +96,7 @@ private fun cleanUpCheck(
 
 private fun getStartDestination(): String {
     //checking user is already logged in or not
-    val user = App.create(APP_ID).currentUser
+    val user = App.create(Constants.APP_ID).currentUser
     return if (user != null && user.loggedIn) Screen.Home.route
     else Screen.Authentication.route
 }
