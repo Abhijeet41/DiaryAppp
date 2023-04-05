@@ -9,6 +9,14 @@ plugins {
 }
 
 android {
+    signingConfigs {
+        release {
+            storeFile file('D:\\Kotlin App Development 2022\\Diary App Content\\diary_app.jks')
+            storePassword 'vejita@242'
+            keyAlias 'key0'
+            keyPassword 'vejita@242'
+        }
+    }
     namespace 'com.example.diaryapp'
     compileSdk ProjectConfig.compileSdk //we cannot used in version catalog(libs.versions.toml) like we did for libraries
 
@@ -125,6 +133,8 @@ dependencies {
     coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:1.2.0'
     //annotationProcessor 'io.realm:realm-annotations-processor:4.0.0'
    // implementation 'com.android.support:multidex:1.0.3'
+    //leak-canary
+    debugImplementation 'com.squareup.leakcanary:leakcanary-android:2.8.1'
     //beginning of muli-module
     implementation(project(":core:ui"))
     implementation(project(":core:util"))
