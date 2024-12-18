@@ -9,14 +9,14 @@ plugins {
 }
 
 android {
-    signingConfigs {
+   /* signingConfigs {
         release {
             storeFile file("D:/Kotlin_App_Development_2022/Diary_App_Content/diary_app.jks") // Forward slashes, no spaces
             storePassword 'vejita@242'
             keyAlias 'key0'
             keyPassword 'vejita@242'
         }
-    }
+    }*/
     namespace 'com.example.diaryapp'
     compileSdk ProjectConfig.compileSdk //we cannot used in version catalog(libs.versions.toml) like we did for libraries
 
