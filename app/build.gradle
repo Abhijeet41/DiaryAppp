@@ -21,11 +21,11 @@ android {
     compileSdk ProjectConfig.compileSdk //we cannot used in version catalog(libs.versions.toml) like we did for libraries
 
     defaultConfig {
-        applicationId "com.example.diaryapp"
+        applicationId "com.diary41.diaryapp"
         minSdk ProjectConfig.minSdk
         targetSdk ProjectConfig.targetSdk
         versionCode 1
-        versionName "1.0"
+        versionName "1.0.2"
        // multiDexEnabled true
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
@@ -135,6 +135,11 @@ dependencies {
    // implementation 'com.android.support:multidex:1.0.3'
     //leak-canary
     debugImplementation 'com.squareup.leakcanary:leakcanary-android:2.8.1'
+
+    //ANRWatchDog
+    implementation 'com.github.anrwatchdog:anrwatchdog:1.4.0'
+
+
     //beginning of muli-module
     implementation(project(":core:ui"))
     implementation(project(":core:util"))
