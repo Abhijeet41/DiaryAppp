@@ -11,7 +11,7 @@ plugins {
 android {
     signingConfigs {
         release {
-            storeFile file("D:/Kotlin App Development 2022/Diary App Content/diary_app.jks")
+            storeFile file("D:/Kotlin_App_Development_2022/Diary_App_Content/diary_app.jks") // Forward slashes, no spaces
             storePassword 'vejita@242'
             keyAlias 'key0'
             keyPassword 'vejita@242'
