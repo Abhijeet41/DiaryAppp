@@ -25,11 +25,11 @@ pipeline {
             }
         }
 
-        stage('Clean Gradle') {
+        /* stage('Clean Gradle') {
             steps {
                 sh './gradlew clean --no-daemon'
             }
-        }
+        } */
 
         stage('Build') {
             steps {
